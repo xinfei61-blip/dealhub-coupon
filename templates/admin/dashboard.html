@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}平台最高管理員總控台 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- 平台抬頭 -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <span class="badge bg-dark text-white px-3 py-1 rounded-pill mb-1">
+        <i class="bi bi-shield-lock-fill me-1"></i>RBAC 最高權限核心
+      </span>
+      <h3 class="fw-bold text-dark mb-0">DealHub 平台總體營運監控台</h3>
+      <span class="text-secondary small">全域數據統計、商家名冊與 RBAC 身份權限管理</span>
+    </div>
+
+    <div>
+      <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill font-monospace">
+        系統管理員：{{ current_user.username }}
+      </span>
+    </div>
+  </div>
+
+  <!-- 全平台頂部四大指標 -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card">
+        <div class="d-flex justify-content-between text-secondary mb-2">
+          <span class="small fw-semibold">全平台總會員數</span>
+          <i class="bi bi-people-fill text-warning fs-5"></i>
+        </div>
+        <div class="metric-value">{{ total_users }}</div>
+        <div class="text-muted small mt-1">消費者 {{ total_consumers }} / 商家 {{ total_merchants }}</div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card success-border">
+        <div class="d-flex justify-content-between text-secondary mb-2">
+          <span class="small fw-semibold">全平台總核銷次數</span>
+          <i class="bi bi-ticket-detailed-fill text-success fs-5"></i>
+        </div>
+        <div class="metric-value text-success">{{ "{:,}".format(total_redemptions) }}</div>
+        <div class="text-muted small mt-1">實質促成餐飲交易筆數</div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card info-border">
+        <div class="d-flex justify-content-between text-secondary mb-2">
+          <span class="small fw-semibold">全平台總發行優惠活動</span>
+          <i class="bi bi-tags-fill text-info fs-5"></i>
+        </div>
+        <div class="metric-value text-primary">{{ total_coupons }}</div>
+        <div class="text-muted small mt-1">目前活躍發行中 {{ active_coupons }} 檔</div>
+      </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card purple-border">
+        <div class="d-flex justify-content-between text-secondary mb-2">
+          <span class="small fw-semibold">累計為大眾省下總額</span>
+          <i class="bi bi-wallet2 text-purple fs-5" style="color: #8b5cf6;"></i>
+        </div>
+        <div class="metric-value" style="color: #8b5cf6;">NT$ {{ "{:,}".format(platform_total_savings|int) }}</div>
+        <div class="text-muted small mt-1">創造極強之社會消費價值</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- RBAC 使用者帳號與權限變更管理表 -->
+    <div class="col-lg-7">
+      <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden h-100">
+        <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-person-gear text-primary"></i>
+            <span>RBAC 權限角色動態管理 (嚴格防越權)</span>
+          </h5>
+          <span class="badge bg-light text-secondary border">即時指派</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-secondary">
+              <tr>
+                <th class="ps-4">使用者</th>
+                <th>信箱</th>
+                <th>目前角色 (Role)</th>
+                <th class="text-end pe-4">權限切換操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in all_users %}
+              <tr>
+                <td class="ps-4">
+                  <div class="fw-bold text-dark">{{ u.username }}</div>
+                  <span class="text-muted small">ID: #{{ u.id }}</span>
+                </td>
+                <td class="small text-secondary">{{ u.email }}</td>
+                <td>
+                  <span class="badge {% if u.role == 'admin' %}bg-dark text-white{% elif u.role == 'merchant' %}bg-primary-subtle text-primary{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-3 py-1 font-monospace">
+                    {{ u.role }}
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <form action="{{ url_for('admin.change_role', user_id=u.id) }}" method="POST" class="d-inline-flex gap-1 align-items-center justify-content-end">
+                    <select name="role" class="form-select form-select-sm rounded-pill" style="width: 120px;" onchange="this.form.submit()">
+                      <option value="consumer" {% if u.role == 'consumer' %}selected{% endif %}>consumer</option>
+                      <option value="merchant" {% if u.role == 'merchant' %}selected{% endif %}>merchant</option>
+                      <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>admin</option>
+                    </select>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 平台已入駐特約商家名冊 -->
+    <div class="col-lg-5">
+      <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden h-100">
+        <div class="card-header bg-white py-3 px-4 border-bottom">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-shop text-warning"></i>
+            <span>特約餐飲商家名冊 (速食與手搖)</span>
+          </h5>
+        </div>
+
+        <div class="list-group list-group-flush">
+          {% for m in merchants %}
+          <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ m.logo_url or 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=50&auto=format&fit=crop&q=60' }}" 
+                   alt="{{ m.brand_name }}" class="rounded-circle" style="width: 44px; height: 44px; object-fit: cover;">
+              <div>
+                <div class="fw-bold text-dark">{{ m.brand_name }}</div>
+                <div class="text-muted small">
+                  分類：<span class="badge bg-light text-secondary border">{{ m.category_name }}</span> ｜ 活動數：{{ m.coupons.count() }} 檔
+                </div>
+              </div>
+            </div>
+            <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">認證店家</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全平台最新即時核銷流水線 (Live Redemption Stream) -->
+  <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-activity text-danger"></i>
+        <span>全平台即時核銷串流流水線</span>
+      </h5>
+      <span class="badge bg-secondary-subtle text-secondary">最近 {{ recent_redemptions|length }} 筆</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-secondary">
+          <tr>
+            <th class="ps-4">核銷序號</th>
+            <th>消費者帳號</th>
+            <th>店家名稱</th>
+            <th>優惠券標題</th>
+            <th>折抵省額</th>
+            <th>核銷發生時間</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent_redemptions %}
+          <tr>
+            <td class="ps-4 font-monospace fw-bold text-dark">{{ r.redemption_code }}</td>
+            <td class="fw-semibold">{{ r.user.username }}</td>
+            <td>{{ r.coupon.merchant.brand_name if (r.coupon and r.coupon.merchant) else '-' }}</td>
+            <td class="text-truncate" style="max-width: 250px;">{{ r.coupon.title if r.coupon else '-' }}</td>
+            <td><span class="text-success fw-bold">+ NT${{ r.saved_amount|int }}</span></td>
+            <td class="text-secondary small">{{ r.redeemed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

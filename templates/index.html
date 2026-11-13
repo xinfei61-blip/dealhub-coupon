@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}快省 DealHub - 速食與飲料專屬優惠天天享折扣{% endblock %}
+
+{% block content %}
+<!-- 頂部 Hero 區塊 -->
+<div class="py-5 bg-white border-bottom shadow-sm">
+  <div class="container text-center py-2">
+    <div class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill fw-bold mb-3 fs-6">
+      🔥 點餐前先查優惠，天天省荷包！
+    </div>
+    <h1 class="display-5 fw-extrabold text-dark tracking-tight mb-3">
+      高頻美食專屬省錢平台
+    </h1>
+    <p class="lead text-secondary mx-auto mb-4" style="max-width: 650px;">
+      聚焦全台最夯「速食」漢堡炸雞與「飲料」手搖鮮果茶，每一次核銷自動加總您的「我的錢包」，成就感看得見！
+    </p>
+
+    <!-- 關鍵字搜尋列 -->
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+        <form action="{{ url_for('consumer.index') }}" method="GET" class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border p-1 bg-white">
+          {% if current_category %}
+            <input type="hidden" name="category" value="{{ current_category.slug }}">
+          {% endif %}
+          <span class="input-group-text bg-transparent border-0 ps-3">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input type="text" name="q" value="{{ search_query }}" class="form-control border-0 shadow-none px-2" placeholder="搜尋速食、飲料、大麥克、拿鐵或品牌...">
+          <button class="btn btn-warning rounded-pill px-4 fw-bold" type="submit">尋找優惠</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- 若消費者登入，展示「我的錢包」即時省錢浮動通知與榮譽成就感 -->
+  {% if current_user.is_authenticated and current_user.is_consumer %}
+  <div class="card border-0 bg-success-subtle text-success-emphasis rounded-4 p-3 mb-4 shadow-sm">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bg-success text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+          <i class="bi bi-wallet2 fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-6">會員專屬「我的錢包」省錢進度</div>
+          <div class="text-secondary small">您已在平台完成 <span class="fw-bold text-success">{{ user_redemptions_count }}</span> 次核銷，累計省下：</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="fs-3 fw-bolder text-success">
+          NT$ {{ user_savings|int }}
+        </div>
+        <a href="{{ url_for('consumer.wallet') }}" class="btn btn-success rounded-pill px-3 fw-bold btn-sm">
+          查看完整錢包紀錄 <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 垂直分類導覽列 (全數聚焦「速食」與「飲料」兩大高頻次消費分類) -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ url_for('consumer.index') }}" class="category-pill {% if not current_category %}active{% endif %}">
+        <i class="bi bi-grid-fill"></i> 全部推薦
+      </a>
+      {% for cat in categories %}
+        <a href="{{ url_for('consumer.index', category=cat.slug) }}" class="category-pill {% if current_category and current_category.id == cat.id %}active{% endif %}">
+          <i class="bi {{ cat.icon }}"></i> {{ cat.name }}專區
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="text-secondary small">
+      共找到 <span class="fw-bold text-dark">{{ coupons|length }}</span> 檔活動
+      {% if search_query %}（關鍵字：「{{ search_query }}」）{% endif %}
+    </div>
+  </div>
+
+  <!-- 優惠券卡片網格 -->
+  <div class="row g-4" id="couponGrid">
+    {% for coupon in coupons %}
+    <div class="col-lg-4 col-md-6">
+      <div class="coupon-card">
+        <!-- 圖片與標籤 -->
+        <div class="coupon-image-wrapper">
+          <img src="{{ coupon.image_url }}" alt="{{ coupon.title }}" loading="lazy">
+          <div class="savings-tag">
+            <i class="bi bi-tag-fill me-1"></i>{{ coupon.discount_tag }}
+          </div>
+          <div class="category-tag">
+            <i class="bi {{ coupon.category.icon }} me-1"></i>{{ coupon.category.name }}
+          </div>
+        </div>
+
+        <!-- 內容資訊 -->
+        <div class="p-3 flex-grow-1 d-flex flex-direction-column justify-content-between">
+          <div>
+            <!-- 商家品牌 -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <img src="{{ coupon.merchant.logo_url or 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop&q=60' }}" 
+                   alt="{{ coupon.merchant.brand_name }}" class="merchant-avatar">
+              <span class="text-secondary small fw-semibold">{{ coupon.merchant.brand_name }}</span>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-2 text-truncate" title="{{ coupon.title }}">
+              {{ coupon.title }}
+            </h5>
+
+            <p class="text-muted small mb-3 text-truncate-2" style="height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+              {{ coupon.description }}
+            </p>
+
+            <!-- 價格與省錢比對 -->
+            <div class="bg-light p-2 rounded-3 mb-3 d-flex align-items-baseline justify-content-between">
+              <div>
+                <span class="text-muted text-decoration-line-through small me-2">原價 NT${{ coupon.original_price|int }}</span>
+                <span class="fs-5 fw-bolder text-danger">特價 NT${{ coupon.discount_price|int }}</span>
+              </div>
+              <div class="badge bg-success-subtle text-success fw-bold">
+                現省 NT${{ coupon.savings_amount|int }}
+              </div>
+            </div>
+
+            <!-- 限制防呆狀態：剩餘名額進度條 -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small text-secondary mb-1">
+                <span>限量額度</span>
+                <span>剩餘 <strong id="remain-qty-{{ coupon.id }}">{{ coupon.remaining_quantity }}</strong> / {{ coupon.total_quantity }} 份</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                {% set percent = (coupon.redeemed_count / coupon.total_quantity * 100) if coupon.total_quantity > 0 else 0 %}
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percent }}%"></div>
+              </div>
+            </div>
+
+            <!-- 時效控管提示 -->
+            <div class="d-flex align-items-center gap-1 text-muted small mb-3">
+              <i class="bi bi-clock-history text-secondary"></i>
+              <span>有效至：{{ coupon.end_date.strftime('%Y-%m-%d') }}</span>
+              <span class="badge bg-secondary-subtle text-secondary ms-auto">單人限 {{ coupon.max_per_user }} 次</span>
+            </div>
+          </div>
+
+          <!-- 操作按鈕 -->
+          <div class="d-flex gap-2 pt-2 border-top">
+            <a href="{{ url_for('consumer.coupon_detail', coupon_id=coupon.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-grow-1">
+              條款規範
+            </a>
+
+            {% if coupon.is_valid_now %}
+              <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold flex-grow-1 text-dark"
+                      onclick="openRedeemModal({{ coupon.id }}, '{{ coupon.title }}', '{{ coupon.savings_amount|int }}', '{{ coupon.merchant.brand_name }}')">
+                <i class="bi bi-qr-code-scan me-1"></i>立即核銷
+              </button>
+            {% else %}
+              <button class="btn btn-secondary btn-sm rounded-pill px-3 flex-grow-1" disabled>
+                {% if coupon.remaining_quantity <= 0 %}已兌換完畢{% else %}已逾期/未開始{% endif %}
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+      <div class="text-muted fs-1 mb-3"><i class="bi bi-emoji-smile"></i></div>
+      <h4 class="text-secondary">目前該分類尚無活動</h4>
+      <p class="text-muted">請嘗試切換「速食」或「飲料」分類，或清除搜尋關鍵字。</p>
+      <a href="{{ url_for('consumer.index') }}" class="btn btn-outline-primary rounded-pill px-4">查看全部優惠</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

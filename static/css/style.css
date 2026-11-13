@@ -1,0 +1,228 @@
+:root {
+  --primary-color: #f97316;       /* 活力美食暖橘 (速食與飲料象徵) */
+  --primary-dark: #ea580c;
+  --primary-light: #ffedd5;
+  --secondary-color: #0284c7;     /* 商家數據藍 */
+  --success-color: #10b981;       /* 錢包省錢翡翠綠 */
+  --success-light: #d1fae5;
+  --dark-bg: #0f172a;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+  color: var(--text-main);
+  background-color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 玻璃擬態導航列 */
+.navbar-custom {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.5px;
+}
+
+/* 分類導覽按鈕 (垂直聚焦速食與飲料) */
+.category-pill {
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  border: 1.5px solid #e2e8f0;
+  background-color: white;
+  color: #475569;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-pill:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+}
+
+.category-pill.active {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+
+/* 優惠卡片設計 */
+.coupon-card {
+  border: none;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.coupon-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.coupon-image-wrapper {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+.coupon-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.coupon-card:hover .coupon-image-wrapper img {
+  transform: scale(1.05);
+}
+
+.savings-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 5px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.category-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+/* 商家 Logo 小圓標 */
+.merchant-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 我的錢包 KPI 卡片 */
+.wallet-hero {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-radius: 20px;
+  color: white;
+  padding: 35px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+}
+
+.wallet-hero::after {
+  content: "💰";
+  position: absolute;
+  right: -20px;
+  bottom: -30px;
+  font-size: 140px;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.savings-highlight {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #34d399;
+  letter-spacing: -1px;
+}
+
+/* 商業儀表板 KPI 指標卡片 */
+.metric-card {
+  border: none;
+  border-radius: 14px;
+  background: white;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+}
+
+.metric-card.success-border {
+  border-left-color: var(--success-color);
+}
+
+.metric-card.info-border {
+  border-left-color: var(--secondary-color);
+}
+
+.metric-card.purple-border {
+  border-left-color: #8b5cf6;
+}
+
+.metric-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+/* 模擬條碼 / 憑證展示 */
+.barcode-box {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.barcode-simulated {
+  font-family: monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: #0f172a;
+}
+
+/* 頁腳 */
+footer {
+  margin-top: auto;
+  background: white;
+  border-top: 1px solid var(--border-color);
+}

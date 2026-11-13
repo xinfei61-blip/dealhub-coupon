@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}商家品牌檔案設定 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 rounded-4 shadow-sm bg-white p-4 p-md-5">
+        <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+          <img src="{{ merchant.logo_url or 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop&q=60' }}" 
+               alt="{{ merchant.brand_name }}" class="rounded-circle border" style="width: 64px; height: 64px; object-fit: cover;">
+          <div>
+            <h3 class="fw-bold text-dark mb-0">品牌檔案自主管理</h3>
+            <span class="text-secondary small">商家獨立維護品牌識別、Logo 與門市資訊</span>
+          </div>
+        </div>
+
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">品牌/店家名稱 <span class="text-danger">*</span></label>
+              <input type="text" name="brand_name" class="form-control rounded-3" required 
+                     value="{{ merchant.brand_name }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">垂直主營類別</label>
+              <select name="category_name" class="form-select rounded-3">
+                <option value="速食" {% if merchant.category_name == '速食' %}selected{% endif %}>🍔 速食</option>
+                <option value="飲料" {% if merchant.category_name == '飲料' %}selected{% endif %}>🧋 飲料</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">品牌 Logo 圖片連結 (Image URL)</label>
+              <input type="url" name="logo_url" class="form-control rounded-3" 
+                     placeholder="https://..." value="{{ merchant.logo_url or '' }}">
+              <div class="form-text small">請填寫正方形比例之公開圖片 URL。</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">品牌簡介 (Bio)</label>
+              <textarea name="description" rows="3" class="form-control rounded-3" 
+                        placeholder="請向消費者介紹您的品牌歷史、招牌餐點與堅持理念...">{{ merchant.description or '' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">聯絡/客服電話</label>
+              <input type="text" name="phone" class="form-control rounded-3" 
+                     placeholder="例：02-1234-5678" value="{{ merchant.phone or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">客服電子信箱</label>
+              <input type="email" name="contact_email" class="form-control rounded-3" 
+                     value="{{ merchant.contact_email or current_user.email }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">適用門市/門市地址說明</label>
+              <input type="text" name="address" class="form-control rounded-3" 
+                     placeholder="例：全台門市皆適用，或指定旗艦門市" value="{{ merchant.address or '全台門市適用' }}">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-4 border-top mt-4">
+            <a href="{{ url_for('merchant.dashboard') }}" class="btn btn-light rounded-pill px-4">回儀表板</a>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">儲存品牌檔案</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

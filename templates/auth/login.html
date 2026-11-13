@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}會員登入 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-sm-8">
+      <div class="card border-0 rounded-4 shadow-sm bg-white p-4 p-sm-5">
+        <div class="text-center mb-4">
+          <div class="brand-badge d-inline-block mb-2">DealHub</div>
+          <h3 class="fw-bold text-dark">歡迎登入 DealHub</h3>
+          <p class="text-muted small">登入專屬帳號，享受速食與手搖折價並記錄我的錢包</p>
+        </div>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">使用者名稱或電子信箱</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+              <input type="text" name="login_input" id="login_input" class="form-control border-start-0 ps-0 rounded-end-3" 
+                     placeholder="請輸入帳號或 Email" required autofocus>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">密碼</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" name="password" id="password_input" class="form-control border-start-0 ps-0 rounded-end-3" 
+                     placeholder="請輸入密碼" required>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-4 small">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
+              <label class="form-check-label text-muted" for="rememberMe">記住我的登入</label>
+            </div>
+            <a href="#" class="text-decoration-none text-muted">忘記密碼？</a>
+          </div>
+
+          <button type="submit" class="btn btn-warning w-100 py-2 rounded-pill fw-bold text-dark shadow-sm mb-3">
+            立即登入
+          </button>
+        </form>
+
+        <div class="text-center text-secondary small pt-2 border-top">
+          尚未擁有 DealHub 帳號？ 
+          <a href="{{ url_for('auth.register') }}" class="fw-bold text-primary text-decoration-none">立即免費註冊</a>
+        </div>
+
+        <!-- 快速體驗測試填入按鈕 (開發與 Demo 專用便利鍵) -->
+        <div class="mt-4 p-3 bg-light rounded-4 small">
+          <div class="fw-bold text-dark mb-2 text-center"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>一鍵代入測試帳號：</div>
+          <div class="d-grid gap-1">
+            <button type="button" class="btn btn-sm btn-outline-success text-start rounded-pill py-1 px-3" onclick="fillCreds('demo@dealhub.com', 'user123')">
+              👤 <strong>消費者</strong>：demo@dealhub.com (已累計錢包省錢)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger text-start rounded-pill py-1 px-3" onclick="fillCreds('mcd@dealhub.com', 'mcd123')">
+              🍔 <strong>速食商家</strong>：mcd@dealhub.com (麥當勞數據儀表板)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary text-start rounded-pill py-1 px-3" onclick="fillCreds('milksha@dealhub.com', 'milksha123')">
+              🧋 <strong>飲料商家</strong>：milksha@dealhub.com (迷客夏數據儀表板)
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-dark text-start rounded-pill py-1 px-3" onclick="fillCreds('admin@dealhub.com', 'admin123')">
+              🛡️ <strong>平台管理員</strong>：admin@dealhub.com (RBAC 總控台)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function fillCreds(u, p) {
+  document.getElementById('login_input').value = u;
+  document.getElementById('password_input').value = p;
+}
+</script>
+{% endblock %}

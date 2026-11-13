@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if coupon %}編輯優惠券 - {{ coupon.title }}{% else %}上架新優惠券活動{% endif %} - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card border-0 rounded-4 shadow-sm bg-white p-4 p-md-5">
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+          <div>
+            <h3 class="fw-bold text-dark mb-1">
+              {% if coupon %}編輯優惠活動{% else %}發行新優惠活動{% endif %}
+            </h3>
+            <span class="text-secondary small">依據時效控管、限量總額與條款備註規範設計</span>
+          </div>
+          <a href="{{ url_for('merchant.coupon_list') }}" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
+            返回活動列表
+          </a>
+        </div>
+
+        <form method="POST" class="coupon-form">
+          <!-- 基礎活動資訊 -->
+          <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tag-fill text-warning me-2"></i>1. 基本資訊</h5>
+          
+          <div class="row g-3 mb-4">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">活動標題 (Title) <span class="text-danger">*</span></label>
+              <input type="text" name="title" class="form-control rounded-3" required 
+                     placeholder="例：大麥克超值套餐現折 $30 元券"
+                     value="{{ coupon.title if coupon else '' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">垂直核心分類 <span class="text-danger">*</span></label>
+              <select name="category_id" class="form-select rounded-3" required>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}" {% if coupon and coupon.category_id == cat.id %}selected{% endif %}>
+                    {{ cat.name }} ({{ cat.slug }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">行銷優惠徽章 (Tag)</label>
+              <input type="text" name="discount_tag" class="form-control rounded-3" 
+                     placeholder="例：現折 $30、買一送一、第 2 杯半價"
+                     value="{{ coupon.discount_tag if coupon else '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">活動封面圖片 URL</label>
+              <input type="url" name="image_url" class="form-control rounded-3" 
+                     placeholder="https://..."
+                     value="{{ coupon.image_url if coupon else '' }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">活動詳細描述</label>
+              <textarea name="description" rows="2" class="form-control rounded-3" 
+                        placeholder="請簡述套餐內容物、口感特色或適用情境...">{{ coupon.description if coupon else '' }}</textarea>
+            </div>
+          </div>
+
+          <!-- 價格與省錢設定 (自動計算省錢錢包數值) -->
+          <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cash-coin text-success me-2"></i>2. 價格與省錢設定 (為消費者錢包記帳)</h5>
+          
+          <div class="row g-3 mb-4 bg-light p-3 rounded-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">原價 (NT$)</label>
+              <input type="number" step="0.5" name="original_price" id="original_price" class="form-control rounded-3" 
+                     placeholder="140" value="{{ coupon.original_price if coupon else '100' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">特惠價 (NT$)</label>
+              <input type="number" step="0.5" name="discount_price" id="discount_price" class="form-control rounded-3" 
+                     placeholder="110" value="{{ coupon.discount_price if coupon else '80' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold text-success">為顧客省下金額 (NT$) <span class="text-danger">*</span></label>
+              <input type="number" step="0.5" name="savings_amount" id="savings_amount" class="form-control rounded-3 border-success" 
+                     placeholder="30" required value="{{ coupon.savings_amount if coupon else '20' }}">
+              <div class="form-text small">每次核銷自動計入消費者的「我的錢包」省錢統計。</div>
+            </div>
+          </div>
+
+          <!-- 限制機制與防呆 (System Constraints) -->
+          <h5 class="fw-bold text-dark mb-3"><i class="bi bi-shield-check text-primary me-2"></i>3. 系統限制機制與防呆控管</h5>
+          
+          <div class="row g-3 mb-4">
+            <!-- 時效控管 -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">開始時間 (Start Date) <span class="text-danger">*</span></label>
+              <input type="datetime-local" name="start_date" id="start_date" class="form-control rounded-3" required
+                     value="{{ coupon.start_date.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.start_date else '' }}">
+              <div class="form-text small">在此時間之前，系統不允許核銷。</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">結束時間 (End Date) <span class="text-danger">*</span></label>
+              <input type="datetime-local" name="end_date" id="end_date" class="form-control rounded-3" required
+                     value="{{ coupon.end_date.strftime('%Y-%m-%dT%H:%M') if coupon and coupon.end_date else '' }}">
+              <div class="form-text small">在此時間之後，優惠券自動失效過期。</div>
+            </div>
+
+            <!-- 數量控管 -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">總發行數量上限 (限量份數) <span class="text-danger">*</span></label>
+              <input type="number" name="total_quantity" min="1" class="form-control rounded-3" required
+                     placeholder="100" value="{{ coupon.total_quantity if coupon else '100' }}">
+              <div class="form-text small">達到上限後系統自動防呆關閉，無法再行核銷。</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">單一帳號限用次數 (Per-User Limit) <span class="text-danger">*</span></label>
+              <input type="number" name="max_per_user" min="1" class="form-control rounded-3" required
+                     placeholder="1" value="{{ coupon.max_per_user if coupon else '1' }}">
+              <div class="form-text small">防刷單防呆，例如設為 1 代表每人限領用一次。</div>
+            </div>
+
+            <!-- 條款備註 -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">條款備註 (使用規範文字) <span class="text-danger">*</span></label>
+              <textarea name="terms_and_conditions" rows="3" class="form-control rounded-3" required
+                        placeholder="請清楚標示文字版使用規範，例如：&#10;1. 限內用或外帶自取。&#10;2. 不得與其他行銷優惠合併使用。&#10;3. 結帳前請出示核銷代碼畫面。">{{ coupon.terms_and_conditions if coupon else '1. 限內用或外帶自取。\n2. 本券不得與其他折價券或優惠套餐併用。\n3. 結帳前請主動向門市人員出示核銷畫面。' }}</textarea>
+            </div>
+
+            {% if coupon %}
+            <div class="col-12">
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" name="is_active" id="isActiveSwitch" {% if coupon.is_active %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="isActiveSwitch">保持此活動上架啟用狀態</label>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+            <a href="{{ url_for('merchant.coupon_list') }}" class="btn btn-light rounded-pill px-4">取消</a>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+              {% if coupon %}儲存變更{% else %}確認發行優惠券{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

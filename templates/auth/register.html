@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}免費註冊帳號 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card border-0 rounded-4 shadow-sm bg-white p-4 p-sm-5">
+        <div class="text-center mb-4">
+          <div class="brand-badge d-inline-block mb-2">DealHub</div>
+          <h3 class="fw-bold text-dark">加入 DealHub 快省平台</h3>
+          <p class="text-muted small">選擇您的身份，開啟智慧省錢與精準行銷</p>
+        </div>
+
+        <form method="POST">
+          <!-- 身份選擇 (RBAC) -->
+          <label class="form-label fw-bold small text-dark mb-2">請選擇您要註冊的身份類別：</label>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="role" id="roleConsumer" value="consumer" checked onchange="toggleMerchantFields()">
+              <label class="btn btn-outline-warning w-100 py-2 rounded-3 text-start small" for="roleConsumer">
+                <div class="fw-bold text-dark"><i class="bi bi-person-heart me-1"></i>一般消費者</div>
+                <div class="text-muted" style="font-size: 0.75rem;">享速食飲料折價並記錄我的錢包</div>
+              </label>
+            </div>
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="role" id="roleMerchant" value="merchant" onchange="toggleMerchantFields()">
+              <label class="btn btn-outline-primary w-100 py-2 rounded-3 text-start small" for="roleMerchant">
+                <div class="fw-bold text-dark"><i class="bi bi-shop me-1"></i>特約餐飲商家</div>
+                <div class="text-muted" style="font-size: 0.75rem;">上架優惠與觀看曝光轉換漏斗</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">使用者名稱 (帳號) <span class="text-danger">*</span></label>
+            <input type="text" name="username" class="form-control rounded-3" placeholder="英數組合，如 foodie_alex" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">電子信箱 (Email) <span class="text-danger">*</span></label>
+            <input type="email" name="email" class="form-control rounded-3" placeholder="name@example.com" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small">設定密碼 <span class="text-danger">*</span></label>
+              <input type="password" name="password" class="form-control rounded-3" placeholder="至少 6 位字元" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold small">確認密碼 <span class="text-danger">*</span></label>
+              <input type="password" name="confirm_password" class="form-control rounded-3" placeholder="再次輸入密碼" required>
+            </div>
+          </div>
+
+          <!-- 商家專屬動態欄位 -->
+          <div id="merchantFields" class="d-none bg-light p-3 rounded-4 mb-3 border">
+            <div class="fw-bold text-primary small mb-2"><i class="bi bi-shop-window me-1"></i>商家品牌檔案資料</div>
+            
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">品牌/門市名稱 <span class="text-danger">*</span></label>
+              <input type="text" name="brand_name" class="form-control form-control-sm rounded-3" placeholder="例：快樂手搖飲旗艦店">
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">主營垂直分類</label>
+              <select name="category_name" class="form-select form-select-sm rounded-3">
+                <option value="速食">🍔 速食</option>
+                <option value="飲料">🧋 飲料</option>
+              </select>
+            </div>
+
+            <div class="mb-0">
+              <label class="form-label small fw-semibold">門市電話</label>
+              <input type="text" name="phone" class="form-control form-control-sm rounded-3" placeholder="02-1234-5678">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-warning w-100 py-2 rounded-pill fw-bold text-dark shadow-sm mb-3">
+            建立帳號並登入
+          </button>
+        </form>
+
+        <div class="text-center text-secondary small pt-2 border-top">
+          已經有帳號了？ 
+          <a href="{{ url_for('auth.login') }}" class="fw-bold text-primary text-decoration-none">直接登入</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleMerchantFields() {
+  const isMerchant = document.getElementById('roleMerchant').checked;
+  const merchantFields = document.getElementById('merchantFields');
+  if (isMerchant) {
+    merchantFields.classList.remove('d-none');
+  } else {
+    merchantFields.classList.add('d-none');
+  }
+}
+</script>
+{% endblock %}

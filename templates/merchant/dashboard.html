@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}商家數據儀表板 - 行銷成效與轉換率量化 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- 商家品牌抬頭 -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ merchant.logo_url or 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=100&auto=format&fit=crop&q=60' }}" 
+           alt="{{ merchant.brand_name }}" class="rounded-circle border" style="width: 60px; height: 60px; object-fit: cover;">
+      <div>
+        <h3 class="fw-bold text-dark mb-0">{{ merchant.brand_name }} 商業數據儀表板</h3>
+        <span class="text-secondary small">
+          垂直分類：<strong>{{ merchant.category_name }}</strong> ｜ 連線帳號：{{ current_user.email }}
+        </span>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('merchant.profile') }}" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+        <i class="bi bi-gear me-1"></i>品牌檔案
+      </a>
+      <a href="{{ url_for('merchant.create_coupon') }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>上架新優惠
+      </a>
+    </div>
+  </div>
+
+  <!-- 行銷資料科學四大核心指標卡片 (Marketing Science KPIs) -->
+  <div class="row g-3 mb-4">
+    <!-- 總曝光數 (Views) -->
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card">
+        <div class="d-flex align-items-center justify-content-between text-secondary mb-2">
+          <span class="fw-semibold small">總曝光次數 (Total Views)</span>
+          <i class="bi bi-eye-fill fs-5 text-warning"></i>
+        </div>
+        <div class="metric-value">{{ "{:,}".format(total_views) }}</div>
+        <div class="text-muted small mt-1">前端被瀏覽曝光總累計</div>
+      </div>
+    </div>
+
+    <!-- 總核銷數 (Redemptions) -->
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card success-border">
+        <div class="d-flex align-items-center justify-content-between text-secondary mb-2">
+          <span class="fw-semibold small">實際核銷次數 (Redemptions)</span>
+          <i class="bi bi-check2-circle fs-5 text-success"></i>
+        </div>
+        <div class="metric-value text-success">{{ "{:,}".format(total_redemptions) }}</div>
+        <div class="text-muted small mt-1">實際來店兌換次數</div>
+      </div>
+    </div>
+
+    <!-- 整體轉換率 (Conversion Rate) -->
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card info-border">
+        <div class="d-flex align-items-center justify-content-between text-secondary mb-2">
+          <span class="fw-semibold small">整體轉換率 (Conv. Rate)</span>
+          <i class="bi bi-funnel-fill fs-5 text-info"></i>
+        </div>
+        <div class="metric-value text-primary">{{ overall_conversion_rate }}%</div>
+        <div class="text-muted small mt-1">看見優惠到實際核銷之漏斗</div>
+      </div>
+    </div>
+
+    <!-- 為顧客創造之省錢價值 -->
+    <div class="col-md-3 col-sm-6">
+      <div class="metric-card purple-border">
+        <div class="d-flex align-items-center justify-content-between text-secondary mb-2">
+          <span class="fw-semibold small">為顧客累計省下 (Total Saved)</span>
+          <i class="bi bi-coin fs-5 text-purple" style="color: #8b5cf6;"></i>
+        </div>
+        <div class="metric-value" style="color: #8b5cf6;">NT$ {{ "{:,}".format(total_savings_generated|int) }}</div>
+        <div class="text-muted small mt-1">品牌黏著度與好感推升力</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 視覺化行銷數據圖表 (Views vs Redemptions 對比漏斗柱狀圖) -->
+  <div class="card border-0 rounded-4 p-4 shadow-sm bg-white mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+      <div>
+        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-bar-chart-line-fill text-primary"></i>
+          <span>各優惠活動曝光數 vs 實質核銷數 對比分析 (Funnel & Performance)</span>
+        </h5>
+        <div class="text-muted small">視覺化呈現行銷活動從流量曝光到來店實質兌換的成效落差</div>
+      </div>
+      <span class="badge bg-light text-secondary border">即時同步</span>
+    </div>
+
+    <div style="height: 320px; position: relative;">
+      <canvas id="merchantPerformanceChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 活動列表成效明細 -->
+  <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-list-task text-secondary"></i>
+        <span>優惠券活動表現與轉換評估</span>
+      </h5>
+      <a href="{{ url_for('merchant.coupon_list') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+        進入完整活動管理
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-secondary">
+          <tr>
+            <th class="ps-4">活動名稱</th>
+            <th>折抵優惠</th>
+            <th>曝光數 (Views)</th>
+            <th>點擊數 (Clicks)</th>
+            <th>核銷數 (Redeemed)</th>
+            <th>實質轉換率</th>
+            <th>名額狀態</th>
+            <th>狀態</th>
+            <th class="text-end pe-4">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in coupons %}
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ c.image_url }}" alt="{{ c.title }}" class="rounded-2" style="width: 40px; height: 40px; object-fit: cover;">
+                <div>
+                  <div class="fw-bold text-dark">{{ c.title }}</div>
+                  <span class="text-muted small font-monospace">有效至：{{ c.end_date.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-warning-subtle text-warning-emphasis fw-bold">{{ c.discount_tag }}</span>
+            </td>
+            <td class="fw-bold text-dark">
+              {{ "{:,}".format(c.views_count) }}
+            </td>
+            <td>
+              {{ "{:,}".format(c.clicks_count) }}
+            </td>
+            <td class="fw-bold text-success">
+              {{ c.redeemed_count }}
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="fw-bolder {% if c.conversion_rate > 10 %}text-success{% else %}text-secondary{% endif %}">
+                  {{ c.conversion_rate }}%
+                </span>
+                <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                  <div class="progress-bar bg-info" style="width: {{ [c.conversion_rate, 100]|min }}%"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="small text-secondary">{{ c.redeemed_count }} / {{ c.total_quantity }}</span>
+            </td>
+            <td>
+              {% if c.is_active and c.is_valid_now %}
+                <span class="badge bg-success-subtle text-success">發行中</span>
+              {% elif not c.is_active %}
+                <span class="badge bg-secondary-subtle text-secondary">已暫停</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger">已過期/售罄</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-4">
+              <a href="{{ url_for('merchant.edit_coupon', coupon_id=c.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                編輯
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              尚未建立任何優惠券活動。<br>
+              <a href="{{ url_for('merchant.create_coupon') }}" class="btn btn-primary rounded-pill px-4 mt-3">
+                立即建立第一檔活動
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const chartLabels = {{ chart_labels|tojson }};
+  const chartViews = {{ chart_views|tojson }};
+  const chartRedemptions = {{ chart_redemptions|tojson }};
+
+  const perfCtx = document.getElementById('merchantPerformanceChart');
+  if (perfCtx && chartLabels.length > 0) {
+    new Chart(perfCtx, {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: '曝光數 (Views)',
+            data: chartViews,
+            backgroundColor: '#cbd5e1',
+            borderRadius: 6,
+            barPercentage: 0.6
+          },
+          {
+            label: '實質核銷數 (Redemptions)',
+            data: chartRedemptions,
+            backgroundColor: '#f97316',
+            borderRadius: 6,
+            barPercentage: 0.6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(context) {
+                if (context.datasetIndex === 1) {
+                  const views = chartViews[context.dataIndex];
+                  const redeems = chartRedemptions[context.dataIndex];
+                  const rate = views > 0 ? ((redeems / views) * 100).toFixed(2) : 0;
+                  return '轉換率 (Conv. Rate): ' + rate + '%';
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  } else if (perfCtx) {
+    perfCtx.parentElement.innerHTML = '<div class="text-center text-muted py-5">尚無活動圖表數據</div>';
+  }
+});
+</script>
+{% endblock %}

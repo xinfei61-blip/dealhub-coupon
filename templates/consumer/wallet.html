@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}我的錢包 - 省錢記帳與核銷成果 - 快省 DealHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- 錢包英雄看板 (加總省錢金額與成就感徽章) -->
+  <div class="wallet-hero mb-4">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold mb-2">
+          {{ badge_title }}
+        </span>
+        <h2 class="fw-bold mb-1">我的省錢錢包 (Smart Savings Wallet)</h2>
+        <p class="text-white-50 mb-3">{{ badge_desc }}</p>
+        
+        <div class="d-flex align-items-baseline gap-2 mb-2">
+          <span class="fs-6 text-white-50">累計總省下金額：</span>
+          <span class="savings-highlight">NT$ {{ total_savings|int }}</span>
+        </div>
+        <div class="text-white-50 small">
+          平台已為您記帳核銷 <strong class="text-white">{{ total_count }}</strong> 次餐飲消費，持續放大每一分錢的價值！
+        </div>
+      </div>
+
+      <div class="col-lg-5 text-lg-end">
+        <div class="d-inline-flex flex-column gap-2 text-start bg-white bg-opacity-10 p-3 rounded-4 backdrop-blur">
+          <div class="d-flex justify-content-between gap-4 text-white small">
+            <span>累計已核銷券數：</span>
+            <span class="fw-bold fs-6">{{ total_count }} 張</span>
+          </div>
+          <div class="d-flex justify-content-between gap-4 text-white small">
+            <span>平均每筆省下：</span>
+            <span class="fw-bold fs-6">
+              NT$ {{ (total_savings / total_count)|round(1) if total_count > 0 else 0 }}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between gap-4 text-white small">
+            <span>最愛省錢類別：</span>
+            <span class="fw-bold fs-6">速食漢堡 / 冰品手搖</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 視覺化數據圖表 (Chart.js 趨勢圖與分類圓餅圖) -->
+  <div class="row g-4 mb-4">
+    <!-- 每月省錢累積折線圖 -->
+    <div class="col-lg-8">
+      <div class="card border-0 rounded-4 p-4 shadow-sm bg-white h-100">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-graph-up text-success"></i>
+            <span>省錢趨勢記帳曲線 (Savings Over Time)</span>
+          </h5>
+          <span class="badge bg-light text-secondary border">單位：新台幣 NT$</span>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="savingsTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 垂直分類省錢佔比圓餅圖 -->
+    <div class="col-lg-4">
+      <div class="card border-0 rounded-4 p-4 shadow-sm bg-white h-100">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-pie-chart-fill text-warning"></i>
+            <span>速食 vs 飲料 佔比</span>
+          </h5>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="categoryPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 詳細核銷歷程資料表 -->
+  <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-receipt-cutoff text-primary"></i>
+        <span>歷史核銷清單與憑證代碼</span>
+      </h5>
+      <span class="badge bg-secondary-subtle text-secondary">共 {{ redemptions|length }} 筆明細</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-secondary">
+          <tr>
+            <th class="ps-4">核銷代碼 (憑證序號)</th>
+            <th>店家品牌</th>
+            <th>垂直分類</th>
+            <th>優惠活動標題</th>
+            <th>省下金額 (Saved)</th>
+            <th>核銷時間</th>
+            <th class="text-end pe-4">狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in redemptions %}
+          <tr>
+            <td class="ps-4">
+              <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border">
+                {{ r.redemption_code }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ r.coupon.merchant.logo_url or 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=50&auto=format&fit=crop&q=60' }}" 
+                     alt="{{ r.coupon.merchant.brand_name }}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
+                <span class="fw-semibold text-dark">{{ r.coupon.merchant.brand_name }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light text-secondary border">
+                {{ r.coupon.category.name }}
+              </span>
+            </td>
+            <td>
+              <span class="text-dark fw-medium">{{ r.coupon.title }}</span>
+            </td>
+            <td>
+              <span class="text-success fw-bold fs-6">
+                + NT${{ r.saved_amount|int }}
+              </span>
+            </td>
+            <td class="text-secondary small">
+              {{ r.redeemed_at.strftime('%Y-%m-%d %H:%M') }}
+            </td>
+            <td class="text-end pe-4">
+              <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">
+                <i class="bi bi-check-circle me-1"></i>核銷成功
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-wallet2 fs-2 d-block mb-2"></i>
+              您尚未在平台進行任何優惠核銷。<br>
+              <a href="{{ url_for('consumer.index') }}" class="btn btn-warning rounded-pill px-4 mt-3 fw-bold text-dark">
+                立即瀏覽速食與飲料好康
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // 1. 每月省錢記帳折線趨勢圖
+  const trendLabels = {{ savings_by_month.keys()|list|tojson }};
+  const trendValues = {{ savings_by_month.values()|list|tojson }};
+
+  const trendCtx = document.getElementById('savingsTrendChart');
+  if (trendCtx && trendLabels.length > 0) {
+    new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: '省下金額 (NT$)',
+          data: trendValues,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderWidth: 3,
+          tension: 0.35,
+          fill: true,
+          pointBackgroundColor: '#10b981',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => 'NT$ ' + value
+            }
+          }
+        }
+      }
+    });
+  } else if (trendCtx) {
+    trendCtx.parentElement.innerHTML = '<div class="text-center text-muted py-5">尚未累積足夠趨勢數據</div>';
+  }
+
+  // 2. 垂直分類省錢佔比圓餅圖
+  const catLabels = {{ savings_by_category.keys()|list|tojson }};
+  const catValues = {{ savings_by_category.values()|list|tojson }};
+
+  const pieCtx = document.getElementById('categoryPieChart');
+  if (pieCtx && catLabels.length > 0) {
+    new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels,
+        datasets: [{
+          data: catValues,
+          backgroundColor: ['#f97316', '#0284c7', '#10b981', '#f59e0b']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  } else if (pieCtx) {
+    pieCtx.parentElement.innerHTML = '<div class="text-center text-muted py-5">無分類佔比資料</div>';
+  }
+});
+</script>
+{% endblock %}
