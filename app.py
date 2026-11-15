@@ -35,7 +35,7 @@ def create_app(config_class=Config):
         return {
             'now': datetime.utcnow(),
             'current_year': datetime.utcnow().year,
-            'app_name': '快省 DealHub - 速食飲料專屬優惠平台'
+            'app_name': '鈔捷徑 - 速食飲料專屬優惠平台'
         }
 
     # 自動建立資料表並於首次啟動時注入示範資料 (雲端 Render 自動初始化防護)
@@ -59,7 +59,7 @@ app = create_app()
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print("=================================================================")
-    print(" 🚀 快省 DealHub 優惠券與核銷平台已啟動！")
+    print(" 🚀 鈔捷徑 優惠券與核銷平台已啟動！")
     print(f" 🌐 前端訪問網址: http://127.0.0.1:{port}")
     print(" 💡 核心分類聚焦: 「速食」與「飲料」")
     print("=================================================================")

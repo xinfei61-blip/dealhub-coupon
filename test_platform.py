@@ -17,7 +17,7 @@ def test_platform():
     print("🔍 [1/7] 測試首頁與垂直分類 (速食 & 飲料)...")
     res = client.get('/')
     assert res.status_code == 200
-    assert '快省' in res.data.decode('utf-8')
+    assert '鈔捷徑' in res.data.decode('utf-8')
     assert '速食專區' in res.data.decode('utf-8')
     assert '手搖飲料' in res.data.decode('utf-8')
     print("   ✅ 首頁渲染成功！")
